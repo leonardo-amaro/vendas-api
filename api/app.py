@@ -15,4 +15,22 @@ def get_vendas():
     return jsonify(dados)
 
 def handler(request, context):
-    return handle(app, request, context)
+    return app(request.environ, start_response)
+
+def start_response(status, headers):
+    from io import BytesIO
+    body = BytesIO()
+
+    def write(data):
+        body.write(data)
+        return None
+
+    def get_response():
+        return {
+            "statusCode": int(status.split()[0]),
+            "headers": dict(headers),
+            "body": body.getvalue().decode()
+        }
+
+    write.get_response = get_response
+    return write
