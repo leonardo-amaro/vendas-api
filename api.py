@@ -12,3 +12,5 @@ def get_vendas():
         {"id": 2, "mes": "Mar", "vendas": 3700}
     ]
     return jsonify(dados)
+
+api.run(host="localhost", port=3000, debug=True)
