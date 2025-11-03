@@ -1,10 +1,11 @@
-from flask import Flask, jsonify, request
+from flask import Flask, jsonify
 from flask_cors import CORS
+from vercel_wsgi import handle
 
-api = Flask(__name__)
-CORS(api)
+app = Flask(__name__)
+CORS(app)
 
-@api.route("/api/vendas", methods=["GET"])
+@app.route("/api/vendas", methods=["GET"])
 def get_vendas():
     dados = [
         {"id": 1, "mes": "Jan", "vendas": 2000},
@@ -13,4 +14,5 @@ def get_vendas():
     ]
     return jsonify(dados)
 
-api.run(host="localhost", port=3000, debug=True)
+def handler(request, context):
+    return handle(app, request, context)
