@@ -1,6 +1,5 @@
-from flask import Flask, jsonify
+from flask import Flask, jsonify, request
 from flask_cors import CORS
-from vercel_wsgi import handle
 
 app = Flask(__name__)
 CORS(app)
@@ -14,23 +13,20 @@ def get_vendas():
     ]
     return jsonify(dados)
 
-def handler(request, context):
-    return app(request.environ, start_response)
+def handler(event, context):
+    from werkzeug.wrappers import Request, Response
 
-def start_response(status, headers):
-    from io import BytesIO
-    body = BytesIO()
+    @Request.application
+    def application(request):
+        with app.request_context(request.environ):
+            response = app.full_dispatch_request()
+            return response
 
-    def write(data):
-        body.write(data)
-        return None
+    req = Request.from_values(**event)
+    res = application(req)
 
-    def get_response():
-        return {
-            "statusCode": int(status.split()[0]),
-            "headers": dict(headers),
-            "body": body.getvalue().decode()
-        }
-
-    write.get_response = get_response
-    return write
+    return {
+        "statusCode": res.status_code,
+        "headers": dict(res.headers),
+        "body": res.get_data(as_text=True),
+    }
